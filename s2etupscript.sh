@@ -1,17 +1,34 @@
-#! /usr/bin/bash
 echo ""
 UserName="$(whoami)"
 USBname="71D0-8A5F"
-spaceLogfile="==================================================================================================================================================="
-terminalSPACE="================================================================================"
 
 echo "Linux script"
 echo "User: $UserName"
 echo ""
 
-# für: installREPO()
-Software=('freecad' 'timeshift' 'kicad' 'veracrypt' 'openscad' 'keepassxc' 'firefox' 'haruna' 'pdfarranger' 'xournalpp' 'libreoffice-impress' 'libreoffice-langpack-en' 'libreoffice-writer' 'libreoffice-calc' 'prusa-slicer' 'gnome-tweaks' 'easyeffects' 'gimp' 'audacity' 'obs-studio')
-			
+GITNVIM="https://github.com/LigoliPuschkin/nvim" 					# nvim config
+# Software to to choose from repo to install
+Software=('freecad' 'timeshift' 'kicad' 'veracrypt' 'openscad' 'keepassxc' 'firefox' 'haruna' 'pdfarranger' 'xournalpp'
+	'libreoffice-impress' 'libreoffice-langpack-en' 'libreoffice-writer' 'libreoffice-calc' 'prusa-slicer' 'gnome-tweaks'
+	'easyeffects' 'gimp' 'audacity' 'obs-studio' 'neovim' 'qtcreator' 'gstreamer1-plugin-openh264 mozilla-openh264')
+# software to remove
+SoftwareD=('cheese' 'gnome-color-manager' 'gnome-maps' 'rhythmbox' 'gnome-weather' 'gnome-color-manager')
+# Gnome Plugins
+shellEXT=('gnome-browser-connector' 'gnome-extensions-app')			# required Apps in order to have Plugins(extentions)
+		# ↓below↓ extentions to install
+extensions=('https://extensions.gnome.org/extension/1460/vitals/' 'https://extensions.gnome.org/extension/517/caffeine/'
+	'https://extensions.gnome.org/extension/744/hide-activities-button/' 'https://extensions.gnome.org/extension/3193/blur-my-shell/'
+	'https://extensions.gnome.org/extension/4839/clipboard-history/' "https://extensions.gnome.org/extension/8/places-status-indicator/")
+
+draw_line(){						# function to draw line across the terminal window
+	w=$(tput cols)					# gets number of characters needed
+	d=""
+	#echo $w						# debug
+	for ((i = 0; i < $w; i++)); do
+		d+="$1"						# adds one more 
+	done 
+	echo $d							# prints to terminal window
+}
 
 USBNAME() {
 	echo "is: $USBname your USB-drife [y/N]"
@@ -20,46 +37,42 @@ USBNAME() {
 		echo "Input USB-Name"
 		read USBname
 	fi
-	echo "U are using $USBname as your USB-device"
-}
-#============================================================================================
-#Not used jet
-USBFolderStruct(){
-	echo "chreating USB Folder Strucktur"
-	mkdir /run/media/$UserName/$USBname/Documents
-		mkdir /run/media/$UserName/$USBname/Documents/DIY
-		mkdir /run/media/$UserName/$USBname/Documents/logseq
-		mkdir /run/media/$UserName/$USBname/Documents/FH
-			mkdir /run/media/$UserName/$USBname/Documents/FH/S.1
-			mkdir /run/media/$UserName/$USBname/Documents/FH/S.2
-			mkdir /run/media/$UserName/$USBname/Documents/FH/S.3
-		
-}
+	echo "$USBname is the selected USB-device"
+} 
 
-#=================================================================================================================================================
+#--------------------------------------------------------------------------------------------------------------------------
 USBsetup(){
-	echo "$terminalSPACE"
+	echo "copy Documents to PC? [y/N]"
+	read instrep
+	if [[ $instrep == "y" ]] then
+		if -d /run/media/$UserName/$USBname/Documents/bash; then
+			cp -a /run/media/$UserName/$USBname/Documents/bash /home/$UserName
+			echo "setting up Terminal script"
+			chmod u+x /home/$UserName/Documents/bash/configs/terminal.sh							# makes script executable
+			echo "bash /home/$UserName/Documents/bash/configs/terminal.sh" >> /home/.bashrc			# puts the line in brakets in the bashrc fil so that it will execute every time you open a new terminal window
+		else
+			echo "could not find find Documents in: $USBname"
+		fi
+	fi
+
+	drwa_line "="
 	echo "USB-setup"
 		echo "		- Appimages [executabledesctop entry]"
 		echo "		- RPM Packages [Veracrypt]"
 		#echo "		- Appimages [executabledesctop entry]"
 	echo ""
-
-	USBNAME
-	echo ""
-	echo "Do you want to install AppImages from USB [y/N]"
+	echo "install AppImages from USB? [y/N]"
 	read AppImUSB
 	echo ""
-	if [[ $AppImUSB == "y" ]] then 
-		#USBdesktop=()
-		echo "do you already have a folder called Appimages located at /home/AppImages [y/N]"
-		read USBAppImFolder
-		if [[ $AppImFolder == "N" || "n" ]] then
-			cd
-			mkdir AppImages
+	if [[ $AppImUSB == "y" ]] then 						# checks if folder for AppImages already exists
+		cd /home/UserName
+		if cd AppImage &> /dev/null; then
+			cd Appimage
+		else
+			mkdir Appimage								# if it not exist it creat
 		fi
-		
-		cd /run/media/$UserName/$USBname/software/AppImages
+
+		cd /run/media/$UserName/$USBname/software/AppImages				# place on USB for AppImages
 		
 		USBoneMore="y"
 		
@@ -72,10 +85,10 @@ USBsetup(){
 			echo "which AppImage to Add? Input the exact name of the listed Images"
 			read WhichAppIM
 			
-			cp /run/media/$UserName/$USBname/software/AppImages/$WhichAppIM/*.AppImage /home/$UserName/AppImages
+			cp /run/media/$UserName/$USBname/software/AppImages/$WhichAppIM/*.AppImage /home/$UserName/AppImages		# copys Appimage and png Icon to AppImages folder
 			cp /run/media/$UserName/$USBname/software/AppImages/$WhichAppIM/*.png /home/$UserName/AppImages
 			
-			readarray -t USBdesktop< /run/media/$UserName/$USBname/software/AppImages/$WhichAppIM/$WhichAppIM.desktop
+			readarray -t USBdesktop< /run/media/$UserName/$USBname/software/AppImages/$WhichAppIM/$WhichAppIM.desktop 			# reads the .desktop file from the usb
 			
 			firstString="${USBdesktop[3]}"
 			secondString=$UserName
@@ -106,9 +119,9 @@ USBsetup(){
 		#cd /run/media/lhl/71D0-8A5F/software/rpm
 		echo "The following RPM's are Arrivable"
 		echo ""
-		ls 
+		ls
 		echo ""
-			
+		
 		USBoneMore="y"
 		while [[ $USBoneMore == "y" ]]; do
 			echo "enter the exact name of the above shown RPM,s"
@@ -119,43 +132,72 @@ USBsetup(){
 			read USBoneMore
 		done
 	fi
-		
+	
 	echo "end USB-Stetup"
-	echo "$terminalSPACE"
+	drwa_line "="
 }
 
-#=========================================================================================================================
+#--------------------------------------------------------------------------------------------------------------------------
 installREPO(){
-	echo "$terminalSPACE"
+	draw_line "="
 	echo "start Repo App install"
 	echo ""
+	SoftwareTo=()											# Array to store software to be installed
 	
-	sudo dnf upgrade --refresh
-		
-	for val in "${Software[@]}"; do
-		if dnf list installed $val  &> /dev/null; then 
-			echo "$val already installed"
-		else
-			echo "install $val [y/N]"
-			read mio
-			if [[ $mio == "y" ]] then
-				echo "installing"
-				sudo dnf install "$val"
+	for val in "${SoftwareD[@]}"; do 						# delets software i dont need
+		if dnf list installed $val &> /dev/null; then		# checks if sotware is installed
+			echo "removing: $val"
+			sudo dnf remove -y "$val"
+		fi
+	done
+	sudo dnf autoremove -y
+
+	
+	sudo dnf update -y
+
+	for val in "${Software[@]}"; do 						# cycles thrue Software Arry and asks you which you want to install and pust it in SoftwareTo
+		if dnf list installed $val &> /dev/null; then		# checks if software is already installed
+			echo ""
+		else 
+			echo "install $val? [y/N]"
+			read instrep
+			if [[ $instrep == "y" ]] then
+				SoftwareTo+=("$val")
+				if [[ $val == "neovim" ]] then
+					SoftwareTo+=('g++')
+					SoftwareTo+=('cmake')
+					SoftwareTo+=('pip')
+					if cd /run/media/$UserName/$USBname/Documents/bash/configs/nvim &> /dev/null; then				# checks if USB is Pluged in and if it contains the nvim folder
+						cp -a /run/media/$UserName/$USBname/Documents/bash/configs/nvim /home/$UserName/.config		# copies nvim folder
+					elif cd /home/$UserName/Documents/bash/configs/nvim &> /dev/null; then							# checks if there is a nvim folder in Documents
+						cp -a /home/$UserName/Documents/bash/configs/nvim /home/$UserName/.config					# copies it 
+					else
+						echo "no config found use github? [y/N]"													# gets nvim config from my github
+						read instrep
+						if [[ $instrep == "y" ]] then
+							cd /home/$UserName/.config
+							git clone $GITNVIM
+						fi
+					fi
+				fi
 			fi
 		fi
 	done
-		
-	echo ""
-	echo "end Repo App install"
-	echo "$terminalSPACE"
-	sudo dnf autoremove
 
+	for val in "${SoftwareTo[@]}"; do
+		sudo dnf install -y "$val"
+	done
+			
+	sudo dnf autoremove
+	echo ""
+	echo "stop Repo App install"
+	draw_line "="	
 }
 
-#=========================================================================================================================
+#--------------------------------------------------------------------------------------------------------------------------
 BATTchGlimit(){
 	#https://www.linuxuprising.com/2021/02/how-to-limit-battery-charging-set.html
-	echo "$terminalSPACE"
+	draw_line "="	
 	echo "start Battary chg limit"
 	echo ""
 		
@@ -163,7 +205,12 @@ BATTchGlimit(){
 	#ls /sys/class/power_supply
 		
 	ls /sys/class/power_supply/BAT*/charge_control_end_threshold
-		
+	if dnf list installed gedit &> /dev/null; then
+		echo ""
+	else
+		echo "installing Gedit"
+		sudo dnf install -y gedit
+	fi	
 	echo ""
 	echo "coppy the text below and EDIT the /BAT0/ to watever your system calls the battary and past it in the apearing window "
 	echo "[Unit]
@@ -178,62 +225,68 @@ BATTchGlimit(){
 	ExecStart=/bin/bash -c 'echo 80 > /sys/class/power_supply/BAT0/charge_control_end_threshold'
 	[Install]
 	WantedBy=multi-user.target"
-	echo"installing gedit"
-	sudo dnf install gedit
-	sudo touch /etc/systemd/system/battery-charge-threshold.service
+	echo ""
+	echo ""
+
+	sudo touch /etc/systemd/system/battery-charge-threshold.service			# creates file in wch above text will be stored
 	gedit admin:///etc/systemd/system/battery-charge-threshold.service
 	
-	echo ""
 	echo ""
 	echo "ready to proced? [y/N]"
 	read proced
 	if [[ $proced == y ]]	then
-	sudo systemctl enable battery-charge-threshold.service
-	sudo systemctl start battery-charge-threshold.service
+		sudo systemctl enable battery-charge-threshold.service
+		sudo systemctl start battery-charge-threshold.service
+	# the below tow line shuldent be necesarry but apparently you dont have toi restart youtr pc when theey ther
+		sudo systemctl daemon-reload
+		sudo systemctl restart battery-charge-threshold.service
 		
-	echo ""
-	echo "end Battary chg limit"
-	echo "$terminalSPACE"
+		echo "current Battery status:"	
+		cat /sys/class/power_supply/BAT0/status
+		echo ""
+		echo "end Battary chg limit"
+		draw_line "="	
 	fi
 }
+
+#--------------------------------------------------------------------------------------------------------------------------
 fixportacess(){
 #https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux
-	echo "$terminalSPACE"
-	echo "start Fix Terminal acess"
+	draw_line "="
+	echo "start Port acess settings"
 	echo "https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux"
 	echo ""
 	sudo usermod -a -G dialout $UserName
 	echo "stop Fix terminal Acess"
-	echo "$terminalSPACE"
+	draw_line "="
 }
 
-#=========================================================================================================================
+#--------------------------------------------------------------------------------------------------------------------------
 addAppImage(){
 	#https://www.youtube.com/watch?v=bXZma0t0PKE App Image install
-	echo "$terminalSPACE"
+	draw_line "="
 	echo "start adding AppImag"
 	echo ""
 	echo "In Preperation for this Download requoired AppImages along with Icons you wanna use for them"
 	echo ""
 		
-	echo "do you already have a folder called Appimages located at /home/Appimages [y/N]"
-	read AppImFolder
-	if [[ $AppImFolder == "N" || "n" ]] then
-		cd
-		echo ""
-		echo "creating folder Appimages in /home/"
-		mkdir AppImages
-	fi
-
+	cd /home/UserName
+		if cd AppImage &> /dev/null; then
+			cd Appimage
+		else
+			mkdir Appimage								# if it not exist it creat
+		fi
+	
 	echo ""
 	
-	echo "Now you have to move All your AppImages along with theyer Icons to: /home/AppIcons"
+	echo "Now you have to move All your AppImages along with theyer Icons to: /home/AppImages"
 	oneMore="y"
 
 	while [[ $oneMore == "y" ]]; do
 
 #		echo "you are supposed to Sore all your AppImages along with theyer Icons there"
-		echo "now you have to input the Application details i.e meaning you have to give the absolut path to Icon and Exec further mor you have to name the Application and add it to a category"
+		echo "now you have to input the Application details i.e meaning you have to give the absolut path to Icon and Exec"
+		echo "further more you have to name the Application and add it to a category"
 	
 		echo "input ImageApp Name example: Logseq"
 		read ImAppName
@@ -256,482 +309,38 @@ addAppImage(){
 		
 	echo ""
 	echo "stop add AppImag"
-	echo "$terminalSPACE"
+	draw_line "="
 }
 
-#=========================================================================================================================
+#--------------------------------------------------------------------------------------------------------------------------
 shellExtensions(){
-	echo "$terminalSPACE"
-	echo "start gnome shell ext"
-	shellEXT=('gnome-browser-connector' 'gnome-extensions-app')
+	draw_line "="														# print spaces in terminal
+	echo "start gnome extentions"
 		
-	extensions=('https://extensions.gnome.org/extension/1460/vitals/' 'https://extensions.gnome.org/extension/517/caffeine/' 'https://extensions.gnome.org/extension/744/hide-activities-button/' 'https://extensions.gnome.org/extension/3193/blur-my-shell/' 'https://extensions.gnome.org/extension/4839/clipboard-history/' "https://extensions.gnome.org/extension/8/places-status-indicator/")
-	echo "wil atomaticliy install all necesary software"
-	echo "will open gnome shell extension Website to to recomended extensions"
-	echo "close each window after clicing installing"
-	for val in "${shellEXT[@]}"; do
+	for val in "${shellEXT[@]}"; do										# checks if required Sotware is in stalled
 		if dnf list installed $val  &> /dev/null; then 
-			echo "$val already installed"
-		else
-			sudo dnf install "$val"
+			#echo "$val already installed"
+			echo ""
+		else															# if not installd install it
+			echo "installing: $val"
+			sudo dnf install $val
 		fi
 	done
-		
+	
+	echo ""
+	echo "each Pluging will be opend in its own Window, close ot to get to the next one"
+	
 	for val in "${extensions[@]}"; do 
 		firefox --new-window $val
 	done
+	gnome-extensions-app					# opens extentions app in order activate deactivate extentions
 		
 	echo ""
 	echo "stop gnome shell ext"
-	echo "$terminalSPACE"
+	draw_line "="
 }
 
-printDIR(){
-	cd "$1"
-	echo "$3"
-	if [[ $mapTerminal != "y" ]] then 
-		case $2 in
-			1)		
-			;;		
-			2)	echo " |------- $1" >> "$3"
-			;;		
-			3)	echo " |--------------- $1" >> "$3"
-			;;		
-			4)	echo " |----------------------- $1" >> "$3"
-			;;		
-			5)	echo " |------------------------------- $1" >> "$3"
-			;;		
-			6)	echo " |--------------------------------------- $1" >> "$3"
-			;;		
-			7)	echo " |----------------------------------------------- $1" >> "$3"
-			;;		
-			8)	echo " |------------------------------------------------------- $1" >> "$3"
-			;;		
-			9)	echo " |--------------------------------------------------------------- $1" >> "$3"
-			;;		
-			10)	echo " |----------------------------------------------------------------------- $1" >> "$3"
-			;;		
-			11)	echo " |------------------------------------------------------------------------------- $1" >> "$3"
-			;;		
-			12)	echo " |--------------------------------------------------------------------------------------- $1" >> "$3"
-			;;
-			13)	echo " |----------------------------------------------------------------------------------------------- $1" >> "$3"
-			;;
-			*)		
-			;;
-		esac
- 
-		for file in * ; do 
-			if [ -f "$file" ]; then 
-				case $2 in	
-					1)	echo " |------- $(wc -c "$file")" >> "$3"
-					;;				
-					2)	echo " |        |------ $(wc -c "$file")" >> "$3"
-					;;				
-					3)	echo " |                |------ $(wc -c "$file")" >> "$3"
-					;;				
-					4)	echo " |                        |------ $(wc -c "$file")" >> "$3"
-					;;				
-					5)	echo " |                                |------ $(wc -c "$file")" >> "$3"
-					;;
-					6)	echo " |                                        |------ $(wc -c "$file")" >> "$3"
-					;;
-					7)	echo " |                                                |------ $(wc -c "$file")" >> "$3"
-					;;
-					8)	echo " |                                                        |------ $(wc -c "$file")" >> "$3"
-					;;
-					9)	echo " |                                                                |------ $(wc -c "$file")" >> "$3"
-					;;
-					10)	echo " |                                                                        |------	$(wc -c "$file")" >> "$3"
-					;;
-					11)	echo " |                                                                                |------ $(wc -c "$file")" >> "$3"
-					;;
-					12)	echo " |                                                                                        |------ $(wc -c "$file")" >> "$3"
-					;;
-					13)	echo " |                                                                                                |------ $(wc -c "$file")" >> "$3"
-					;;
-					*)
-					;;
-				esac
-			fi
-		done
-		echo " |"  >> "$3"
-	else
 #--------------------------------------------------------------------------------------------------------------------------
-		case $2 in
-			1)		
-			;;		
-			2)	echo " |----- $1" 
-			;;		
-			3)	echo " |	|------ $1"
-			;;		
-			4)	echo " |		|------ $1"
-			;;		
-			5)	echo " |			|------ $1"
-			;;		
-			6)	echo " |				|------ $1"
-			;;		
-			7)	echo " |					|------ $1"
-			;;		
-			8)	echo " |						|------ $1"
-			;;		
-			9)	echo " |							|------ $1"
-			;;		
-			10)	echo " |								|------ $1"
-			;;		
-			11)	echo " |									|------ $1"
-			;;		
-			12)	echo " |										|------$1"
-			;;
-			13)	echo " |											|------ $1"
-			;;
-			*)
-			;;
-		esac
-				
-		for file in * ; do 
-			if [ -f "$file" ]; then 
-				case $2 in
-					1)	
-						echo " |------- $(wc -c "$file")"
-					;;				
-					2)	#echo " |	|"	
-						echo " |	|------	$(wc -c "$file")"
-					;;				
-					3)	#echo " |		|"
-						echo " |		|------	$(wc -c "$file")"
-					;;				
-					4)	#echo " |			|"
-						echo " |			|------	$(wc -c "$file")"
-					;;				
-					5)	#echo " |				|"
-						echo " |				|------	$(wc -c "$file")"
-					;;
-					6)	#echo " |					|"
-						echo " |					|------	$(wc -c "$file")"
-					;;
-					7)	
-						echo " |						|------	$(wc -c "$file")"
-					;;
-					8)	
-						echo " |							|------	$(wc -c "$file")"
-					;;
-					9)	
-						echo " |								|------	$(wc -c "$file")"
-					;;
-					10)	
-						echo " |									|------	$(wc -c "$file")"
-					;;
-					11)	
-						echo " |										|------	$(wc -c "$file")"
-					;;
-					12)	
-						echo " |											|------	$(wc -c "$file")"
-					;;
-					13) 	echo " |												|------	$(wc -c "$file")"
-					;;
-					*)
-					;;
-				esac
-			fi
-		done
-		echo " |"
-	fi
-}
-
-
-
-print(){
-	for F1 in $myfile*/ ; do
-	#    	echo "$F1"
-	    	printDIR "$F1" "1"
-	    	
-		if [ "$(find "$F1" -mindepth 1 -type d)" ]; then 
-			for F2 in "$F1"*/ ; do
-	#			echo "$F2"
-				printDIR "$F2" "3" "$2"
-				
-				if [ "$(find "$F2" -mindepth 1 -type d)" ]; then
-					for F3 in "$F2"*/ ; do
-	#					echo "$F3"
-						printDIR "$F3" "4" "$2"
-						
-						if [ "$(find "$F3" -mindepth 1 -type d)" ]; then
-							for F4 in "$F3"*/ ; do
-	#							echo "$F4"
-								printDIR "$F4" "5" "$2"
-								
-								if [ "$(find "$F4" -mindepth 1 -type d)" ]; then
-									for F5 in "$F4"*/ ; do
-	#									echo "$F5"
-										printDIR "$F5" "6" "$2"
-										
-										if [ "$(find "$F5" -mindepth 1 -type d)" ]; then
-											for F6 in "$F5"*/ ; do
-	#											echo "$F6"
-												printDIR "$F6" "7" "$2"
-												
-												if [ "$(find "$F6" -mindepth 1 -type d)" ]; then
-													for F7 in "$F6"*/ ; do
-														printDIR "$F7" "8" "$2"
-														#echo "$F7"
-														
-														if [ "$(find "$F7" -mindepth 1 -type d)" ]; then
-															for F8 in "$F7"*/ ; do
-																printDIR "$F8" "9" "$2"
-																#echo "$F8"
-																
-																if [ "$(find "$F8" -mindepth 1 -type d)" ]; then
-																	for F9 in "$F8"*/ ; do
-																		printDIR "$F9" "10" "$2"
-																		#echo "$F9"
-																	
-																		if [ "$(find "$F9" -mindepth 1 -type d)" ]; then
-																			for F10 in "$F9"*/ ; do
-																				printDIR "$F10" "11" "$2"
-																				#echo "$F10"
-																												
-																				if [ "$(find "$F10" -mindepth 1 -type d)" ]; then
-																					for F11 in "$F10"*/ ; do
-																						printDIR "$F11" "12" "$2"
-																						#echo "$F11"
-																							
-																						if [ "$(find "$F11" -mindepth 1 -type d)" ]; then
-																							for F12 in "$F11"*/ ; do
-																								printDIR "$F12" "13" "$2"
-																								#echo "$F12"
-																							done
-																						fi
-																					done
-																				fi
-																			done
-																		fi
-																	done
-																fi
-															done
-														fi	
-													done
-												fi
-											done
-										fi	
-									done
-								fi	
-							done
-						fi
-					done
-				fi
-			done
-		fi
-	done
-}
-#--------------------------------------------------------------------------------------------------------------------------
-
-printdire(){
-	echo "give path to dir to map ex: /home/lhl/Documents"
-	read myfile
-
-	echo "schow dir map in terminal [y/N]"
-	read mapTerminal
-	if [[ $mapTerminal != "y" ]] then
-		echo "give path to store map: ex: /home/lhl/Documents/map.txt   (file will automaticly be createt if not already exists)"
-		read mapfile
-	fi
-	print "$myfile" "$mapfile" 
-}
-#--------------------------------------------------------------------------------------------------------------------------
-
-
-backup(){
-	USBNAME
-	echo "Options"
-	echo "		- sys (backups entire Documentsfolder) to veracrypt harddrive"
-	echo "		- dir (backups several 'dir' of chois to location of choice)"
-	echo "		- usb-a (backups logsecq; DIY; FH to USB)"
-	echo "		- usb-l (backups logseq folder to USB)"
-	echo "		- usb-diy (backups DIY to USB)"
-	echo "		- usb-fh (backups DIY to USB)"
-	read whichbackup
-	mapTerminal="no"
-	mapfile="/run/media/$UserName/$USBname/Documents/backupLog.txt"
-	
-	case $whichbackup in
-		sys)
-			echo "		make sure Ure Harddrive is already pluged in"
-			echo "	mount the drive on 7"
-			veracrypt
-			
-			mkdir /media/veracrypt7/backup_$(date +"%d.%m.%y")
-			myfile="/media/veracrypt7/backup_$(date +"%d.%m.%y")"
-			mapfile="/media/veracrypt7/backupLog.txt"
-			cp -v -R /home/$UserName/Documents/ /media/veracrypt7/backup_$(date +"%d.%m.%y")/
-				
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo "backup_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-				print "$myfile" "$mapfile"
-		;;
-	
-		dir)
-			echo "enter dir to backup ex: /home/$UserName/Documents"
-			read myfile
-			echo ""
-			echo "enter path to backup to ex: /run/media/$UserName/$USBname/Documents {automaticly creats last folder if not already exists}"
-			read backupto
-			echo ""
-			echo "give path to LOG file ex: /run/media/$UserName/$USBname/Documents/backupLog.txt "
-			read mapfile
-			mkdir "$backupto"
-			cp -v -R $myfile/* $backupto/
-				
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo ""$myfile"_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-				print "$myfile" "$mapfile"
-		;;
-		
-		usb-a)
-			mapfile="/run/media/$UserName/$USBname/Documents/backupLog.txt"
-			
-			echo "FH backup of: S.1; S.2; S.3; DIY of choice; logseq to USB: $USBname"
-			#Folders to backup
-			#FolderBackup=("/home/lhl/Documents/FH/S.1" "/home/lhl/Documents/FH/S.2" "/home/lhl/Documents/FH/S.3" "/home/lhl/Documents/logseq" "/home/lhl/Documents/DIY/a_howto's" )		
-			echo "which Semester to backup: S.1 S.2 S.3"
-			read SeBak
-			
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo ""$SeBak"_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-			
-			echo ""
-			if [[ $SeBak == "S.1"  ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.1/* /run/media/$UserName/$USBname/Documents/FH/S.1/
-				
-				myfile="/home/$UserName/Documents/FH/S.1"
-				
-					print "$myfile" "$mapfile"
-			elif [[ $SeBak == "S.2" ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.2/* /run/media/$UserName/$USBname/Documents/FH/S.2/
-				
-				myfile="/home/$UserName/Documents/FH/S.2"
-					print "$myfile" "$mapfile"
-			elif [[ $SeBak == "S.3" ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.3/* /run/media/$UserName/$USBname/Documents/FH/S.3/
-				
-				myfile="/home/$UserName/Documents/FH/S.3"
-					print "$myfile" "$mapfile"
-			fi
-			
-			#wc -c /run/media/$UserName/$USBname/Documents/FH/* >> /run/media/$UserName/$USBname/Documents/backupLog.txt
-			echo "backup Logseq"
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo "Logseq_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-			
-			cp -v -R /home/$UserName/Documents/logseq/* /run/media/$UserName/$USBname/Documents/logseq/
-			#wc -c /run/media/$UserName/$USBname/Documents/logseq/* >> /run/media/$UserName/$USBname/Documents/backupLog.txt
-			myfile="/home/$UserName/Documents/logseq"
-				print "$myfile" "$mapfile"
-			#/home/lhl/Documents/logseq
-			
-			echo "backup DIY"
-			oneMore="y"
-			while [[ $oneMore == "y" ]]; do
-				ls /home/$UserName/Documents/DIY
-				echo "input the Project u wanna backup"
-				read backupDIY
-				#/run/media/$UserName/$USBname/Documents/backupLog.txt
-					echo "" >> $mapfile
-					echo "$spaceLogfile" >> "$mapfile"
-					echo ""$backupDIY"_$(date +"%d.%m.%y")" >> "$mapfile"
-					echo "" >> "$mapfile"
-				mkdir /run/media/$UserName/$USBname/Documents/DIY/$backupDIY
-				cp -v -R /home/$UserName/Documents/DIY/$backupDIY/* /run/media/$UserName/$USBname/Documents/DIY/$backupDIY/
-				#wc -c /run/media/$UserName/$USBname/Documents/DIY/* >> /run/media/$UserName/$USBname/Documents/backupLog.txt
-				myfile="/home/$UserName/Documents/DIY/$backupDIY"
-					print "$myfile" "$mapfile"
-				echo "Do you want to backup a nothjer one [y/N]"
-				read oneMore
-			done		
-		;;
-		
-		usb-l)
-			echo "backup Logseq"
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo "Logseq_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-			
-			cp -v -R /home/$UserName/Documents/logseq/* /run/media/$UserName/$USBname/Documents/logseq/
-			#wc -c /run/media/$UserName/$USBname/Documents/logseq/* >> /run/media/$UserName/$USBname/Documents/backupLog.txt
-			myfile="/home/$UserName/Documents/logseq"
-				print "$myfile" "$mapfile"
-		;;
-		
-		usb-diy)
-			echo "backup DIY"
-			oneMore="y"
-			while [[ $oneMore == "y" ]]; do
-				ls /home/$UserName/Documents/DIY
-				echo "input the Project u wanna backup"
-				read backupDIY
-				#/run/media/$UserName/$USBname/Documents/backupLog.txt
-					echo "" >> $mapfile
-					echo "$spaceLogfile" >> "$mapfile"
-					echo ""$backupDIY"_$(date +"%d.%m.%y")" >> "$mapfile"
-					echo "" >> "$mapfile"
-				mkdir /run/media/$UserName/$USBname/Documents/DIY/$backupDIY
-				cp -v -R /home/$UserName/Documents/DIY/$backupDIY/* /run/media/$UserName/$USBname/Documents/DIY/$backupDIY/
-				#wc -c /run/media/$UserName/$USBname/Documents/DIY/* >> /run/media/$UserName/$USBname/Documents/backupLog.txt
-				myfile="/home/$UserName/Documents/DIY/$backupDIY"
-					print "$myfile" "$mapfile"
-				echo "Do you want to backup a nothjer one [y/N]"
-				read oneMore
-			done
-		;;
-		
-		usb-fh)
-			echo "FH backup of: S.1; S.2; S.3; DIY of choice; logseq to USB: $USBname"
-			#Folders to backup
-			#FolderBackup=("/home/lhl/Documents/FH/S.1" "/home/lhl/Documents/FH/S.2" "/home/lhl/Documents/FH/S.3" "/home/lhl/Documents/logseq" "/home/lhl/Documents/DIY/a_howto's" )		
-			echo "which Semester to backup: S.1 S.2 S.3"
-			read SeBak
-			
-				echo "" >> "$mapfile"
-				echo "$spaceLogfile" >> "$mapfile"
-				echo ""$SeBak"_$(date +"%d.%m.%y")" >> "$mapfile"
-				echo "" >> "$mapfile"
-			
-			echo ""
-			if [[ $SeBak == "S.1"  ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.1/* /run/media/$UserName/$USBname/Documents/FH/S.1/
-				
-				myfile="/home/$UserName/Documents/FH/S.1"
-				
-					print "$myfile" "$mapfile"
-			elif [[ $SeBak == "S.2" ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.2/* /run/media/$UserName/$USBname/Documents/FH/S.2/
-				
-				myfile="/home/$UserName/Documents/FH/S.2"
-					print "$myfile" "$mapfile"
-			elif [[ $SeBak == "S.3" ]] then
-				cp -v -R /home/$UserName/Documents/FH/S.3/* /run/media/$UserName/$USBname/Documents/FH/S.3/
-				
-				myfile="/home/$UserName/Documents/FH/S.3"
-					print "$myfile" "$mapfile"
-			fi
-		;;
-		
-		*)
-		;;
-	esac
-}
-
-
-
 options(){
 echo "Options:"
 echo "		usb		- install AppImages and RPM from USB"
@@ -739,8 +348,6 @@ echo "		repo		- Install Applications from repo"
 echo "		addAppIm	- Add AppImages to Desktop"
 echo "		setBatt		- Set max Battary charge value"
 echo "		exten		- Add shell Extensions"
-echo "		backup		- Run Backup"
-echo "		printdir	- print Dir overview"
 echo "		fixPort		- If Arduino or vs code cant acess Ports"
 echo "		bleach		- install terminal auto compleation"
 echo "-h			- schows Options again"
@@ -748,7 +355,7 @@ echo "exit 			- ends script"
 }
 #=========================================================================================================================
 
-option
+# option
 
 oneMore_2="y"
 while [[ $oneMore_2 == "y" ]]; do
@@ -776,13 +383,16 @@ while [[ $oneMore_2 == "y" ]]; do
 		addAppImage
 	;;
 	
-	backup)
-		backup
+	fixPort)
+		fixportacess
 	;;
 	
-	printdir)
-		printdire
-	;;
+	bleach)
+		git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
+		make -C ble.sh install PREFIX=~/.local
+		echo 'source ~/.local/share/blesh/ble.sh' >> ~/.bashrc
+		# https://github.com/akinomyoga/ble.sh
+	;;	
 	
 	"exit")
 		oneMore_2="n"
@@ -791,16 +401,7 @@ while [[ $oneMore_2 == "y" ]]; do
 	-h)
 		options
 	;;
-	
-	fixPort)
-		fixportacess
-	;;
-	bleach)
-		git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
-		make -C ble.sh install PREFIX=~/.local
-		echo 'source ~/.local/share/blesh/ble.sh' >> ~/.bashrc
-		# https://github.com/akinomyoga/ble.sh
-	
+
 	*)
 		echo "Faild Input"
 		options
@@ -810,4 +411,4 @@ while [[ $oneMore_2 == "y" ]]; do
 done
 
 
-# nstall g++
+# install g++
