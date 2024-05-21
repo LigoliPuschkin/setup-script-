@@ -1,3 +1,4 @@
+#! /usr/bin/bash
 echo ""
 UserName="$(whoami)"
 USBname="71D0-8A5F"
